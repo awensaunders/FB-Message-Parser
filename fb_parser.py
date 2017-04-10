@@ -2,11 +2,13 @@
 
 import json
 import pickle
+import csv
 from datetime import datetime as dt
 
 from bs4 import BeautifulSoup as bs
 
 import fb_chat
+print("hello")
 
 
 dtFormat = '%A, %B %d, %Y at %I:%M%p %Z'
@@ -75,4 +77,15 @@ if __name__ == "__main__":
     with open('messages.htm', "r") as f:
         chat = html_to_py(f)
         # Dump to json to prove works:
-        py_to_json(chat)
+        # py_to_json(chat)
+    # Convert to csv
+    with open('output.csv', 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        for thread in chat.threads:
+            for message in thread.messages:
+                writer.writerow([
+                    str(thread.people),
+                    message.sender,
+                    message.date_time,
+                    message.text
+                ])
