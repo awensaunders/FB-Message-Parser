@@ -4,6 +4,7 @@ import json
 import pickle
 import csv
 from datetime import datetime as dt
+import dateutil.parser as dp
 
 from bs4 import BeautifulSoup as bs
 
@@ -15,7 +16,7 @@ dtFormat = '%A, %B %d, %Y at %I:%M%p %Z'
 #dtFormat = '%A, %d %B %Y at %H:%M %Z'  # UK Format
 
 def html_to_py(file):
-    soup = bs(file)
+    soup = bs(file, "html.parser")
     chat_list = []
     for x in soup.find_all(class_='thread'):
         thread_list = []
@@ -24,16 +25,17 @@ def html_to_py(file):
                 fb_chat.Message(
                     str(y.find(class_='user').string),
                     # Remove "+01" in some dates, to just use BST timezone:
-                    dt.strptime(y.find(class_='meta').string.replace("+01", ""), dtFormat),
+                    dp.parse(y.find(class_='meta').string.replace("+01", "")),
                     str(y.next_sibling.string)
                 )
             )
-        chat_list.append(
-            fb_chat.Thread(
-                set(x.next_element.split(', ')),
-                thread_list
-            )
-        )
+        if x.next_element is not none:
+            chat_list.append(
+                fb_chat.Thread(
+                    set(x.next_element.split(', ')),
+                     thread_list
+                 )
+             )
     return fb_chat.Chat(chat_list)
 
 
@@ -74,12 +76,12 @@ def pickle_to_py(name='messages.pickle'):
 
 if __name__ == "__main__":
     # So long as "messages.htm" in same directory: runs automatically
-    with open('messages.htm', "r") as f:
+    with open('messages.htm', "r", encoding="utf-8") as f:
         chat = html_to_py(f)
         # Dump to json to prove works:
         # py_to_json(chat)
     # Convert to csv
-    with open('output.csv', 'w', newline='') as csvfile:
+    with open('output.csv', 'w', encoding="utf-8", newline='') as csvfile:
         writer = csv.writer(csvfile)
         for thread in chat.threads:
             for message in thread.messages:
